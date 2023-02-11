@@ -36,7 +36,7 @@ connection.onmessage = msg => {
 
   if (json.type === "color") {
     myColor = json.data;
-    state.textContent = myName + ": ";
+    state.textContent = myName;
     state.style.color = myColor;
     input.disabled = false;
   } else if (json.type === "history") {
@@ -47,6 +47,8 @@ connection.onmessage = msg => {
     input.disabled = false;
     addMessage(json.data.author, json.data.text, json.data.color, new Date(json.data.time));
   }
+
+  content.scrollTop = content.scrollHeight;
 };
 
 input.addEventListener("keydown", e => {
@@ -57,14 +59,16 @@ input.addEventListener("keydown", e => {
 
     connection.send(input.value);
 
+    // First msg sent corresponds to name input
+    if (myName == "") {
+      console.log(myName);
+      myName = input.value;
+      console.log(myName);
+    }
+
     // NOTE Make sure user cannot send anything until server sends response
     input.value = "";
     input.disabled = true;
-
-    // First msg sent corresponds to name input
-    if (myName === "") {
-      myName = input.value;
-    }
   }
 });
 
@@ -77,5 +81,9 @@ setInterval(() => {
 }, 3000);
 
 function addMessage(author, msg, color, dt) {
-  content.prepend('<p><span style="color:' + color + '">' + author + "</span> @ " + (dt.getHours() < 10 ? "0" + dt.getHours() : dt.getHours()) + ":" + (dt.getMinutes() < 10 ? "0" + dt.getMinutes() : dt.getMinutes()) + ": " + msg + "</p>");
+  const newDiv = document.createElement("p");
+  newDiv.style.color = color;
+  const newContent = document.createTextNode(`${("0" + dt.getHours()).slice(-2)}:${("0" + dt.getMinutes()).slice(-2)}:${("0" + dt.getSeconds()).slice(-2)} ${author}: ${msg}}`);
+  newDiv.appendChild(newContent);
+  content.appendChild(newDiv);
 }
